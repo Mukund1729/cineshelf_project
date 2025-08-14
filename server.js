@@ -34,20 +34,16 @@ const PORT = process.env.PORT || 5000;
 const app = express();
 
 // Connect to MongoDB and start server
-connectDB()
-  .then(() => {
-    console.log('✅ MongoDB connected');
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error('❌ Failed to connect to MongoDB:', err);
-    process.exit(1);
-  });
+
+// Add your Vercel URL to the list of allowed origins
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174'];
+const vercelUrl = process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`;
+if (vercelUrl) {
+  allowedOrigins.push(vercelUrl);
+}
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174'],
+  origin: allowedOrigins,
   credentials: true
 })); // Allow both common frontend ports and allow credentials
 app.use(express.json());
@@ -187,3 +183,6 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: 'Server error', error: err.message });
 });
+// ADD THESE LINES AT THE END
+connectDB();
+export default app;
