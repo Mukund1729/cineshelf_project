@@ -30,7 +30,7 @@ if (!process.env.MONGO_URI) {
   process.exit(1);
 }
 
-const PORT = process.env.PORT || 5000;
+
 const app = express();
 
 // Connect to MongoDB and start server
