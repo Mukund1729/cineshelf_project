@@ -8,7 +8,6 @@ import './index.css';
 import './LoadFonts';
 
 // Configure axios base URL for API calls
-axios.defaults.baseURL = 'http://localhost:5000';
 
 const queryClient = new QueryClient();
 const root = ReactDOM.createRoot(document.getElementById('root'));
