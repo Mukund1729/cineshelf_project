@@ -36,11 +36,11 @@ const app = express();
 // Connect to MongoDB and start server
 
 // Add your Vercel URL to the list of allowed origins
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174'];
-const vercelUrl = process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`;
-if (vercelUrl) {
-  allowedOrigins.push(vercelUrl);
-}
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'https://cineshelf-project-b7df.vercel.app' // <<-- यह आपकी Vercel URL है
+];
 
 app.use(cors({
   origin: allowedOrigins,
@@ -183,6 +183,15 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: 'Server error', error: err.message });
 });
-// ADD THESE LINES AT THE END
-connectDB();
-export default app;
+const PORT = process.env.PORT || 5000;
+
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`✅ Server is running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('❌ Failed to connect to MongoDB:', err);
+    process.exit(1);
+  });
