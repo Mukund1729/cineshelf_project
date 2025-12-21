@@ -107,12 +107,13 @@ const Profile = () => {
     }
   };
 
-  const getAvatarUrl = (avatar) => {
-    if (!avatar) return null;
-    if (avatar.startsWith('http')) return avatar;
-    if (avatar.startsWith('/')) return `http://localhost:5000${avatar}`;
-    return avatar;
-  };
+const getAvatarUrl = (avatar) => {
+  if (!avatar) return null;
+  if (avatar.startsWith('http')) {
+    return avatar.replace('http://localhost:5000', 'https://cineshelf-backend.onrender.com');
+  }
+  return `https://cineshelf-backend.onrender.com${avatar}`;
+};
 
   const getDefaultAvatar = (name) => {
     const initials = name ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';
