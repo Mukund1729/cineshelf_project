@@ -146,7 +146,8 @@ const tmdbAPI = axios.create({
   },
   headers: {
     'Accept': 'application/json'
-  }
+  },
+  withCredentials: false
 });
 
 // Add request interceptor for logging
