@@ -50,7 +50,7 @@ export default function Reviews() {
           {myReviews.map(review => (
             <div key={review._id} className="bg-[#232526] rounded-2xl shadow-xl border border-cyan-900 p-4 flex flex-col items-center group relative overflow-hidden">
               <Link to={`/movie/${review.tmdbId}`} className="w-full flex flex-col items-center">
-                <img src={review.poster || 'https://via.placeholder.com/220x320?text=No+Image'} alt={review.title} className="w-40 h-60 object-cover rounded-xl mb-3 shadow-lg group-hover:scale-105 transition-transform duration-200 bg-gray-900" loading="lazy" />
+                <img src={review.poster || 'https://placehold.co/220x320?text=No+Image'} alt={review.title} className="w-40 h-60 object-cover rounded-xl mb-3 shadow-lg group-hover:scale-105 transition-transform duration-200 bg-gray-900" loading="lazy" />
                 <div className="font-bold text-lg text-center text-cyan-200 mb-1 font-playfair">{review.title}</div>
               </Link>
               <div className="text-yellow-300 font-bold text-base mb-1">{review.rating !== undefined ? `★ ${review.rating}` : ''}</div>

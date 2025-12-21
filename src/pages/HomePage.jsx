@@ -463,12 +463,12 @@ export default function HomePage() {
                 watchlist.slice(0, 3).map(movie => (
                   <div key={movie.tmdbId} className="flex items-center gap-3 bg-[#232526]/60 rounded-lg p-2">
                     <img 
-                      src={movie.poster || movie.posterUrl || (movie.poster_path ? `https://image.tmdb.org/t/p/w92${movie.poster_path}` : null) || 'https://via.placeholder.com/40x56?text=No+Image'} 
+                      src={movie.poster || movie.posterUrl || (movie.poster_path ? `https://image.tmdb.org/t/p/w92${movie.poster_path}` : null) || 'https://placehold.co/40x56?text=No+Image'} 
                       alt={movie.title} 
                       className="w-10 h-14 rounded-md object-cover"
                       onError={e => { 
                         e.target.onerror = null; 
-                        e.target.src = 'https://via.placeholder.com/40x56?text=No+Image'; 
+                        e.target.src = 'https://placehold.co/40x56?text=No+Image'; 
                       }}
                     />
                     <div className="flex-1">
@@ -506,10 +506,10 @@ export default function HomePage() {
                 userLists.slice(0, 3).map(list => (
                   <div key={list.tmdbId} className="flex items-center gap-3 bg-[#232526]/60 rounded-lg p-2">
                     <img 
-                      src={list.poster || list.posterUrl || `https://image.tmdb.org/t/p/w92${list.poster_path}` || 'https://via.placeholder.com/40x56?text=No+Image'} 
+                      src={list.poster || list.posterUrl || `https://image.tmdb.org/t/p/w92${list.poster_path}` || 'https://placehold.co/40x56?text=No+Image'} 
                       alt={list.title} 
                       className="w-10 h-14 rounded-md object-cover"
-                      onError={e => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/40x56?text=No+Image'; }}
+                      onError={e => { e.target.onerror = null; e.target.src = 'https://placehold.co/40x56?text=No+Image'; }}
                     />
                     <div className="flex-1">
                       <div className="text-sm text-white font-semibold truncate">{list.title}</div>
@@ -549,10 +549,10 @@ export default function HomePage() {
                 userReviews.slice(0, 3).map(review => (
                   <div key={review._id} className="flex items-center gap-3 bg-[#232526]/60 rounded-lg p-2">
                     <img 
-                      src={review.poster || review.posterUrl || `https://image.tmdb.org/t/p/w92${review.poster_path}` || 'https://via.placeholder.com/40x56?text=No+Image'} 
+                      src={review.poster || review.posterUrl || `https://image.tmdb.org/t/p/w92${review.poster_path}` || 'https://placehold.co/40x56?text=No+Image'} 
                       alt={review.title} 
                       className="w-10 h-14 rounded-md object-cover"
-                      onError={e => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/40x56?text=No+Image'; }}
+                      onError={e => { e.target.onerror = null; e.target.src = 'https://placehold.co/40x56?text=No+Image'; }}
                     />
                     <div className="flex-1">
                       <div className="text-sm text-white font-semibold truncate">{review.title}</div>
@@ -635,7 +635,7 @@ export default function HomePage() {
                         src={`https://image.tmdb.org/t/p/w200${person.profile_path}`}
                         alt={person.name}
                         className="w-full h-32 object-cover rounded-t-lg"
-                        onError={e => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/200x300?text=No+Image'; }}
+                        onError={e => { e.target.onerror = null; e.target.src = 'https://placehold.co/200x300?text=No+Image'; }}
                       />
                       <h3 className="text-white font-semibold text-xs text-center p-1 line-clamp-2 font-lato">{person.name}</h3>
                       <span className="text-cyan-300 font-bold mb-2 text-[10px]">{person.known_for_department}</span>
@@ -655,7 +655,7 @@ export default function HomePage() {
                         src={`https://image.tmdb.org/t/p/w200${tv.poster_path}`}
                         alt={tv.name}
                         className="w-full h-32 object-cover rounded-t-lg"
-                        onError={e => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/200x300?text=No+Image'; }}
+                        onError={e => { e.target.onerror = null; e.target.src = 'https://placehold.co/200x300?text=No+Image'; }}
                       />
                       <h3 className="text-white font-semibold text-xs text-center p-1 line-clamp-2 font-lato">{tv.name}</h3>
                       <span className="text-blue-300 font-bold mb-2 text-[10px]">⭐ {tv.vote_average?.toFixed(1) ?? 'N/A'}</span>
@@ -687,7 +687,7 @@ export default function HomePage() {
                           src={`https://image.tmdb.org/t/p/w200${movie.poster_path}`}
                           alt={movie.title}
                           className="w-full h-32 object-cover rounded-t-lg"
-                          onError={e => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/200x300?text=No+Image'; }}
+                          onError={e => { e.target.onerror = null; e.target.src = 'https://placehold.co/200x300?text=No+Image'; }}
                         />
                         <h3 className="text-white font-semibold text-xs text-center p-1 line-clamp-2 font-lato">{movie.title}</h3>
                         <span className="text-blue-300 font-bold mb-2 text-[10px]">⭐ {movie.vote_average?.toFixed(1) ?? 'N/A'}</span>
@@ -787,7 +787,7 @@ export default function HomePage() {
                       src={movie.poster_path ? `https://image.tmdb.org/t/p/w200${movie.poster_path}` : '/placeholder.jpg'}
                       alt={movie.title}
                       className="w-full h-44 object-cover rounded-t-xl group-hover:opacity-90 transition"
-                      onError={e => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/200x300?text=No+Image'; }}
+                      onError={e => { e.target.onerror = null; e.target.src = 'https://placehold.co/200x300?text=No+Image'; }}
                     />
                     {/* Overlay with title, rating, quick action */}
                     <div className="absolute inset-0 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition bg-gradient-to-t from-black/80 to-transparent p-3">
@@ -856,7 +856,7 @@ export default function HomePage() {
                     src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                     alt={movie.title}
                     className="w-full h-80 object-cover rounded-t-2xl group-hover:brightness-75 transition duration-200"
-                    onError={e => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/300x450?text=No+Image'; }}
+                    onError={e => { e.target.onerror = null; e.target.src = 'https://placehold.co/300x450?text=No+Image'; }}
                   />
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <h3 className="text-white font-bold text-lg font-playfair mb-1">{movie.title}</h3>

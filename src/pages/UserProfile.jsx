@@ -29,7 +29,7 @@ export default function UserProfile() {
         </Link>
       </div>
       <div className="bg-[#232526] rounded-xl shadow-lg border border-cyan-700 px-8 py-6 mt-16 w-full max-w-md flex flex-col items-center">
-        <img src={user.avatarUrl || 'https://via.placeholder.com/80x80?text=User'} alt={user.name} className="w-20 h-20 rounded-full object-cover border-2 border-cyan-400 mb-4" />
+        <img src={user.avatarUrl || 'https://placehold.co/80x80?text=User'} alt={user.name} className="w-20 h-20 rounded-full object-cover border-2 border-cyan-400 mb-4" />
         <div className="font-bold text-2xl text-cyan-200 mb-2">{user.name}</div>
         <div className="text-sm text-gray-400 mb-2">Email: {user.email}</div>
         <div className="text-sm text-gray-400 mb-2">User ID: {user._id}</div>

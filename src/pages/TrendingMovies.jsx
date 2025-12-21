@@ -37,7 +37,7 @@ export function TrendingMovies() {
                 src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                 alt={movie.title}
                 className="w-full h-72 object-cover rounded-t-xl"
-                onError={e => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/300x450?text=No+Image'; }}
+                onError={e => { e.target.onerror = null; e.target.src = 'https://placehold.co/300x450?text=No+Image'; }}
               />
               <h3 className="text-white font-semibold text-base text-center p-2 line-clamp-2 font-lato">{movie.title}</h3>
               <span className="text-pink-300 font-bold mt-1 mb-2">⭐ {movie.vote_average?.toFixed(1) ?? 'N/A'}</span>

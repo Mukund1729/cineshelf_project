@@ -169,7 +169,7 @@ export default function People() {
       <aside className="hidden md:flex flex-col min-w-[260px] max-w-[300px] h-full sticky top-24 z-20 gap-8">
         <div className="bg-gradient-to-br from-[#232526]/80 to-[#181c24]/90 rounded-2xl shadow-2xl p-8 border border-cyan-700 flex flex-col items-center gap-4">
           <img 
-            src={currentUser?.avatarUrl || 'https://via.placeholder.com/80x80?text=Avatar'} 
+            src={currentUser?.avatarUrl || 'https://placehold.co/80x80?text=Avatar'} 
             alt={currentUser?.username || ''} 
             className="w-24 h-24 rounded-full border-4 border-cyan-400 shadow-lg object-cover mb-2" 
           />
@@ -235,7 +235,7 @@ export default function People() {
                     {searchResults.map(user => (
                       <div key={user._id} className="bg-gradient-to-br from-[#232526]/80 to-[#181c24]/90 rounded-xl shadow-xl p-4 border border-cyan-700 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <img src={user.avatarUrl || 'https://via.placeholder.com/40x40?text=User'} alt={user.username} className="w-10 h-10 rounded-full object-cover border-2 border-cyan-400" />
+                          <img src={user.avatarUrl || 'https://placehold.co/40x40?text=User'} alt={user.username} className="w-10 h-10 rounded-full object-cover border-2 border-cyan-400" />
                           <div>
                             <div className="font-bold text-cyan-200">{user.username}</div>
                             <div className="text-xs text-gray-400">{user.email}</div>
@@ -272,7 +272,7 @@ export default function People() {
                     <div key={user._id} className="bg-gradient-to-br from-[#232526]/80 to-[#181c24]/90 rounded-2xl shadow-2xl p-6 border border-[#232526]/60 backdrop-blur-xl transition-all duration-300 hover:scale-105 hover:shadow-cyan-400/20">
                       <div className="flex flex-col items-center text-center gap-4">
                         <img 
-                          src={user.avatar || 'https://via.placeholder.com/80x80?text=Avatar'} 
+                          src={user.avatar || 'https://placehold.co/80x80?text=Avatar'} 
                           alt={user.username} 
                           className="w-16 h-16 rounded-full border-3 border-cyan-400 shadow-lg object-cover" 
                         />
@@ -348,7 +348,7 @@ export default function People() {
                     <div key={friend._id || friend.friend?._id} className="bg-gradient-to-br from-[#232526]/80 to-[#181c24]/90 rounded-2xl shadow-2xl p-6 border border-pink-800/40 backdrop-blur-xl transition-all duration-300 hover:scale-105 hover:shadow-pink-400/20">
                       <div className="flex flex-col items-center text-center gap-4">
                         <img 
-                          src={friend.avatar || friend.friend?.avatar || 'https://via.placeholder.com/80x80?text=Avatar'} 
+                          src={friend.avatar || friend.friend?.avatar || 'https://placehold.co/80x80?text=Avatar'} 
                           alt={friend.username || friend.friend?.username} 
                           className="w-16 h-16 rounded-full border-3 border-pink-400 shadow-lg object-cover" 
                         />

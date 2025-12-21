@@ -73,7 +73,7 @@ export default function BoxOfficePage() {
               <div key={movie.id} className="bg-[#181c24] rounded-xl shadow-lg overflow-hidden flex flex-col group hover:scale-105 hover:shadow-cyan-400 transition-transform duration-200 relative">
                 <Link to={`/movie/${movie.id}`} className="block">
                   <img
-                    src={movie.poster_path ? `https://image.tmdb.org/t/p/w300${movie.poster_path}` : 'https://via.placeholder.com/300x450?text=No+Image'}
+                    src={movie.poster_path ? `https://image.tmdb.org/t/p/w300${movie.poster_path}` : 'https://placehold.co/300x450?text=No+Image'}
                     alt={movie.title}
                     className="w-full h-60 object-cover rounded-t-xl group-hover:opacity-90 transition"
                   />

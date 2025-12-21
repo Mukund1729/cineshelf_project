@@ -102,7 +102,7 @@ export default function Watchlist() {
                     className="flex items-center gap-3 px-3 py-2 hover:bg-cyan-900/30 cursor-pointer border-b border-[#232526] last:border-b-0"
                     onClick={() => { setSelectedMovie(m); setSearch(m.title); }}
                   >
-                    <img src={m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : 'https://via.placeholder.com/60x90?text=No+Image'} alt={m.title} className="w-10 h-14 object-cover rounded" />
+                    <img src={m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : 'https://placehold.co/60x90?text=No+Image'} alt={m.title} className="w-10 h-14 object-cover rounded" />
                     <div>
                       <div className="font-semibold text-cyan-200">{m.title}</div>
                       <div className="text-xs text-gray-400">{m.release_date ? m.release_date.slice(0, 4) : ''}</div>
@@ -113,7 +113,7 @@ export default function Watchlist() {
             )}
             {selectedMovie && (
               <div className="flex flex-col items-center mb-2 mt-2">
-                <img src={selectedMovie.poster_path ? `https://image.tmdb.org/t/p/w200${selectedMovie.poster_path}` : 'https://via.placeholder.com/120x180?text=No+Image'} alt={selectedMovie.title} className="w-24 h-36 object-cover rounded mb-2" />
+                <img src={selectedMovie.poster_path ? `https://image.tmdb.org/t/p/w200${selectedMovie.poster_path}` : 'https://placehold.co/120x180?text=No+Image'} alt={selectedMovie.title} className="w-24 h-36 object-cover rounded mb-2" />
                 <div className="font-bold text-lg text-cyan-200">{selectedMovie.title} {selectedMovie.release_date && <span className="text-xs text-gray-400">({selectedMovie.release_date.slice(0, 4)})</span>}</div>
                 <button type="submit" className="mt-4 px-4 py-2 bg-cyan-600 rounded-full font-bold hover:bg-cyan-700 transition-all">Add to Watchlist</button>
               </div>
@@ -128,7 +128,7 @@ export default function Watchlist() {
               <div key={movie.tmdbId || movie.id} className="bg-[#232526] rounded-2xl shadow-xl border border-cyan-900 hover:border-cyan-400 transition-all p-4 flex flex-col items-center group relative overflow-hidden">
                 <Link to={`/movie/${movie.tmdbId || movie.id}`} className="w-full flex flex-col items-center">
                   <img
-                    src={movie.posterUrl || movie.poster || 'https://via.placeholder.com/220x320?text=No+Image'}
+                    src={movie.posterUrl || movie.poster || 'https://placehold.co/220x320?text=No+Image'}
                     alt={movie.title}
                     className="w-40 h-60 object-cover rounded-xl mb-3 shadow-lg group-hover:scale-105 transition-transform duration-200 bg-gray-900"
                     loading="lazy"

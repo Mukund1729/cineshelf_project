@@ -53,11 +53,11 @@ function MovieCard({ id, title, rating, image, releaseDate, genres = [] }) {
                 ? image.startsWith('http')
                   ? image
                   : `https://image.tmdb.org/t/p/w500${image}`
-                : 'https://via.placeholder.com/300x450?text=No+Image'
+                : 'https://placehold.co/300x450?text=No+Image'
             }
             alt={title}
             className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
-            onError={e => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/300x450?text=No+Image'; }}
+            onError={e => { e.target.onerror = null; e.target.src = 'https://placehold.co/300x450?text=No+Image'; }}
           />
           {/* Glassmorphism Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-pink-400/10 to-cyan-400/10 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
