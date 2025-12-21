@@ -39,7 +39,7 @@ const app = express();
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
-  'https://cineshelf-project-mjde.vercel.app' // <<-- यह सही URL है
+  'https://visualcineaste.vercel.app' 
 ];
 
 app.use(cors({
