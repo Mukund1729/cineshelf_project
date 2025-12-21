@@ -254,8 +254,8 @@ const findTrailer = memoize((videos?: VideoResult[]): string | null => {
       return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
     }); // ✅ Correct closing parenthesis here
 
-  return preferredTrailers.length
-    ? `https://youtube.com/watch?v=${preferredTrailers[0].key}`
+   return preferredTrailers.length
+    ? preferredTrailers[0].key
     : null;
 }); // ✅ Properly closes memoize
 
