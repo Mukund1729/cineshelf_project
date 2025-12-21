@@ -8,7 +8,7 @@ import rateLimit from 'express-rate-limit';
 import authRoutes from './routes/auth.js';
 import cors from 'cors';
 import axios from 'axios';
-import gptRoute from './src/api/gpt.js';
+import gptRoute from './routes/gpt.js';
 import listRoutes from './routes/list.js';
 import watchlistRoutes from './routes/watchlist.js';
 import reviewRoutes from './routes/review.js';
