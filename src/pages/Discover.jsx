@@ -109,22 +109,13 @@ function Discover() {
         model: "mistralai/mistral-7b-instruct",
         max_tokens: 150 // Limit tokens for faster response
       };
-      const res = await fetch("/api/gpt", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
-      let data;
-      try {
-        data = await res.json();
-      } catch {
-        throw new Error("Could not parse server response. Try again later.");
-      }
+     
       if (!res.ok) throw new Error(data.error || "AI error");
       let aiText = data.reply || (data.choices && data.choices[0]?.message?.content) || "";
       return aiText;
     }
-
+     const res = await axios.post("/api/gpt", body);
+     let data = res.data;
     // --- ASK MODE ---
     if (mode === "ask") {
       try {
