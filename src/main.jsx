@@ -7,6 +7,10 @@ import App from './App';
 import './index.css';
 import './LoadFonts';
 axios.defaults.baseURL = 'https://cineshelf-backend.onrender.com';
+axios.defaults.withCredentials = true;
+
+
+
 // Configure axios base URL for API calls
 
 const queryClient = new QueryClient();
