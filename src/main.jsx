@@ -6,7 +6,7 @@ import axios from 'axios';
 import App from './App';
 import './index.css';
 import './LoadFonts';
-axios.defaults.baseURL = 'https://cineshelf-backend.onrender.com';
+axios.defaults.baseURL = 'https://cineshelf-project.onrender.com';
 axios.defaults.withCredentials = true;
 
 
