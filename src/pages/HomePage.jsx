@@ -236,33 +236,33 @@ export default function HomePage() {
     // Add user message
     setAiMessages(prev => [...prev, { role: 'user', content: userMessage }]);
 
-    try {
-      const response = await fetch('/api/gpt', {
+  try {
+      const response = await fetch(`${BACKEND_URL}/api/gpt`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: [
-            { role: 'system', content: 'You are CineSage, a passionate cinephile and film expert. You love discussing cinema, directors, actors, and helping people discover amazing films. Be enthusiastic, knowledgeable, and concise. Keep responses under 150 words.' },
+            { role: 'system', content: 'You are CineSage, a passionate cinephile. Keep responses under 100 words.' },
             ...aiMessages,
             { role: 'user', content: userMessage }
           ],
-          temperature: 0.7,
+          // Use a faster model for chat
           model: 'mistralai/mistral-7b-instruct',
-          max_tokens: 150
         })
       });
 
-      const data = await response.json();
-      const aiResponse = data.reply || (data.choices && data.choices[0]?.message?.content) || 'Sorry, I could not process your request.';
+
+     const data = await response.json();
+      const aiResponse = data.reply || 'I am speechless (server error).';
 
       setAiMessages(prev => [...prev, { role: 'assistant', content: aiResponse }]);
     } catch (error) {
-      setAiMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
+      console.error("Chat Error:", error);
+      setAiMessages(prev => [...prev, { role: 'assistant', content: 'Connection failed. Please try again.' }]);
     } finally {
       setAiLoading(false);
     }
   };
-
   const currentData = isSearching ? searchData : popularData;
   const showEmptyState = isSearching && (!searchData || !searchData.pages || searchData.pages[0]?.results?.length === 0);
 
