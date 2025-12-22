@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { searchMovies } from "../api/tmdb";
 import axios from 'axios';
-import { FiClock, FiSearch, FiMessageSquare, FiFilm, FiMenu } from "react-icons/fi";
+import { FiClock, FiSearch, FiMessageSquare, FiFilm, FiMenu, FiTrash2, FiX } from "react-icons/fi";
 
 // --- Import Images Correctly ---
 import romanticImg from '../9654063.webp'; 
@@ -80,32 +80,37 @@ function Discover() {
   }, []);
 
   const fetchHistory = async () => {
+    // 1. Load local history first for speed
+    const local = localStorage.getItem('searchHistory');
+    if (local) setHistory(JSON.parse(local));
+
+    // 2. Try loading from DB
     const token = localStorage.getItem('token');
-    if (!token) return; // Only fetch if logged in
+    if (!token) return;
 
     try {
-      // NOTE: You need to create this route in backend or use a generic user update route
-      // For now, if route doesn't exist, this might fail silently which is fine
       const res = await axios.get(`${BACKEND_URL}/api/user/history`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if(res.data && Array.isArray(res.data)) {
         setHistory(res.data);
+        localStorage.setItem('searchHistory', JSON.stringify(res.data)); // Sync local
       }
     } catch (err) {
-      console.log("Could not load history from DB (Route might not exist yet)");
+      // Silent fail is fine here
     }
   };
 
   // --- Save History ---
   const saveToHistory = async (query, type) => {
-    const token = localStorage.getItem('token');
-    
     // 1. Update UI immediately
     const newItem = { query, type, timestamp: new Date() };
-    setHistory(prev => [newItem, ...prev].slice(0, 20));
+    const newHistory = [newItem, ...history].slice(0, 20);
+    setHistory(newHistory);
+    localStorage.setItem('searchHistory', JSON.stringify(newHistory));
 
     // 2. Save to DB if logged in
+    const token = localStorage.getItem('token');
     if (token) {
         try {
             await axios.post(`${BACKEND_URL}/api/user/history`, 
@@ -153,7 +158,7 @@ function Discover() {
     setAskResult("");
     setMoviesWithPosters([]);
     setLoading(true);
-    setInput(cleaned); // Update input box if clicked from history
+    setInput(cleaned);
 
     // Save to History
     saveToHistory(cleaned, mode);
@@ -173,15 +178,20 @@ function Discover() {
       // --- ASK MODE ---
       if (mode === "ask") {
         const messages = [
-          { role: "system", content: "You are a professional film critic and historian. Provide a detailed, concise, and professional answer." },
+          { role: "system", content: "You are a professional film critic and historian. Provide a detailed, concise, and professional answer in plain text or markdown." },
           { role: "user", content: cleaned }
         ];
         const aiText = await callLLM(messages);
         
         // Handle if AI returns JSON instead of text
         try {
-            const parsed = JSON.parse(aiText);
-            setAskResult(parsed.answer || parsed.reply || aiText);
+            const cleanText = aiText.replace(/```json/g, "").replace(/```/g, "").trim();
+            if (cleanText.startsWith('{')) {
+                const parsed = JSON.parse(cleanText);
+                setAskResult(parsed.answer || parsed.reply || aiText);
+            } else {
+                setAskResult(aiText);
+            }
         } catch {
             setAskResult(aiText);
         }
@@ -193,7 +203,7 @@ function Discover() {
         const messages = [
           {
             role: "system",
-            content: `You are a film curator. Return ONLY a raw JSON array of 6 movie objects based on the user request. 
+            content: `You are a film curator. Return ONLY a raw JSON array of 6 movie objects.
             Format: [{"title": "Name", "year": "YYYY", "reason": "Short reason why"}]. 
             Do not add markdown formatting. ${moodPrompt}`
           },
@@ -204,26 +214,39 @@ function Discover() {
         let titles = [];
 
         try {
-          // Robust Parsing: Remove markdown if present
-          const cleanJson = aiText.replace(/```json/g, "").replace(/```/g, "").trim();
-          titles = JSON.parse(cleanJson);
+          // ✅ ROBUST PARSING LOGIC START
+          let cleanJson = aiText.replace(/```json/g, "").replace(/```/g, "").trim();
+          
+          // Find the actual JSON array in the text
+          const firstBracket = cleanJson.indexOf('[');
+          const lastBracket = cleanJson.lastIndexOf(']');
+          
+          if (firstBracket !== -1 && lastBracket !== -1) {
+            cleanJson = cleanJson.substring(firstBracket, lastBracket + 1);
+            titles = JSON.parse(cleanJson);
+          } else {
+            // Check if it's a single answer object
+            const firstCurly = cleanJson.indexOf('{');
+            const lastCurly = cleanJson.lastIndexOf('}');
+            if (firstCurly !== -1 && lastCurly !== -1) {
+               const jsonObj = JSON.parse(cleanJson.substring(firstCurly, lastCurly + 1));
+               if (jsonObj.answer) {
+                   setMode("ask");
+                   setAskResult(jsonObj.answer);
+                   setLoading(false);
+                   return;
+               }
+            }
+            throw new Error("Invalid JSON structure");
+          }
+          // ✅ ROBUST PARSING LOGIC END
+
         } catch (e) {
-          console.error("JSON Parse fail, trying regex fallback");
-          // Fallback if AI didn't return strict JSON
-          setError("The Curator is thinking abstractly... please try a clearer prompt.");
+          console.error("JSON Parse fail, falling back to text", e);
+          setMode("ask");
+          setAskResult(aiText); // Fallback: Show the raw text if parsing fails
           setLoading(false);
           return;
-        }
-
-        if (!Array.isArray(titles)) {
-            // Handle if AI returned a single object answer instead of array
-            if(titles.answer) {
-                setMode("ask");
-                setAskResult(titles.answer);
-                setLoading(false);
-                return;
-            }
-            titles = []; 
         }
 
         // Fetch TMDB Details in Parallel
@@ -231,7 +254,6 @@ function Discover() {
           titles.map(async (item) => {
             try {
               let searchTitle = typeof item === 'string' ? item : item.title;
-              // Clean title
               searchTitle = searchTitle.replace(/\s*\(\d{4}\).*/, "").trim();
               
               const tmdbRes = await searchMovies(searchTitle);
@@ -244,8 +266,10 @@ function Discover() {
                 title: best.title,
                 year: best.release_date?.slice(0, 4),
                 posterUrl: `https://image.tmdb.org/t/p/w500${best.poster_path}`,
+                backdrop_path: best.backdrop_path,
                 rating: best.vote_average,
-                curatorNote: item.reason || "" // Add AI reason if available
+                overview: best.overview,
+                curatorNote: item.reason || "" 
               };
             } catch { return null; }
           })
@@ -253,7 +277,10 @@ function Discover() {
 
         const filtered = results.filter(Boolean);
         setMoviesWithPosters(filtered);
-        if (filtered.length === 0) setError("No matching movies found in our archives.");
+        
+        if (filtered.length === 0) {
+             setError("No matching movies found in our archives.");
+        }
       }
 
     } catch (err) {
@@ -268,24 +295,41 @@ function Discover() {
     <div className="flex h-screen w-full bg-black overflow-hidden font-sans text-white">
       
       {/* --- LEFT SIDEBAR: HISTORY --- */}
-      <aside className={`flex-shrink-0 bg-[#0d1117] border-r border-[#30363d] flex flex-col transition-all duration-300 z-50 ${showSidebar ? 'w-64' : 'w-0 opacity-0'} overflow-hidden`}>
+      <aside className={`flex-shrink-0 bg-[#0d1117] border-r border-[#30363d] flex flex-col transition-all duration-300 z-50 ${showSidebar ? 'w-64 translate-x-0' : 'w-0 -translate-x-full opacity-0'} overflow-hidden h-full fixed md:relative`}>
         <div className="p-6 border-b border-[#30363d] flex items-center justify-between">
           <Link to="/" className="text-lg font-bold font-playfair tracking-wide text-white">
             visual.cineaste
           </Link>
+          <button onClick={() => setShowSidebar(false)} className="md:hidden text-gray-400">
+            <FiX />
+          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <FiClock /> Recent Discoveries
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                <FiClock /> History
+            </h3>
+            {history.length > 0 && (
+                <button 
+                    onClick={() => { setHistory([]); localStorage.removeItem('searchHistory'); }} 
+                    className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1"
+                >
+                    <FiTrash2 />
+                </button>
+            )}
+          </div>
 
           <div className="space-y-2">
             {history.length === 0 && <p className="text-xs text-gray-600 italic">No search history.</p>}
             {history.map((item, idx) => (
               <div 
                 key={idx} 
-                onClick={() => handleSearch(null, item.query)}
+                onClick={() => {
+                    setMode(item.type || 'discover');
+                    handleSearch(null, item.query);
+                    if(window.innerWidth < 768) setShowSidebar(false);
+                }}
                 className="p-3 rounded-lg bg-[#21262d] hover:bg-[#30363d] cursor-pointer transition-all group border border-transparent hover:border-gray-600"
               >
                 <div className="flex items-center gap-2 text-[10px] text-gray-400 mb-1">
@@ -302,17 +346,17 @@ function Discover() {
       </aside>
 
       {/* --- RIGHT MAIN CONTENT --- */}
-      <main className="flex-1 relative flex flex-col h-full">
+      <main className="flex-1 relative flex flex-col h-full w-full">
         
-        {/* Toggle Sidebar Button */}
+        {/* Toggle Sidebar Button (Visible when sidebar hidden or mobile) */}
         <button 
             onClick={() => setShowSidebar(!showSidebar)}
-            className="absolute top-4 left-4 z-50 p-2 bg-black/50 backdrop-blur rounded-full text-white hover:bg-white/10 transition-colors"
+            className={`absolute top-4 left-4 z-50 p-2 bg-black/50 backdrop-blur rounded-full text-white hover:bg-white/10 transition-colors ${showSidebar ? 'hidden md:hidden' : 'block'}`}
         >
             <FiMenu />
         </button>
 
-        {/* Dynamic Background (Scoped to Main Content) */}
+        {/* Dynamic Background */}
         <div className="absolute inset-0 w-full h-full z-0" style={{
           backgroundImage: `url(${bgPoster})`,
           backgroundSize: 'cover',
@@ -404,39 +448,41 @@ function Discover() {
                         <FiMessageSquare />
                         <span className="text-xs font-bold uppercase tracking-wider">Expert Analysis</span>
                     </div>
-                    {askResult}
+                    <div className="whitespace-pre-line">{askResult}</div>
                 </div>
             )}
 
             {/* DISCOVER RESULTS GRID */}
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 w-full max-w-7xl mt-12 pb-20">
-            {moviesWithPosters.map((movie, idx) => (
-                <Link 
-                key={idx} 
-                to={`/movie/${movie.id}`} 
-                className="group relative overflow-hidden rounded-xl bg-[#161b22] border border-gray-800 hover:border-gray-500 hover:scale-105 transition-all duration-500 shadow-2xl flex flex-col"
-                >
-                <div className="relative aspect-[2/3] overflow-hidden">
-                    <img src={movie.posterUrl} alt={movie.title} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60"></div>
-                </div>
-                
-                <div className="p-4 flex flex-col gap-1 bg-[#161b22] flex-1">
-                    <h3 className="text-white font-bold text-sm leading-tight line-clamp-1">{movie.title}</h3>
-                    <div className="flex justify-between items-center text-xs text-gray-400 mb-2">
-                        <span>{movie.year}</span>
-                        <span className="text-yellow-500 font-bold">★ {movie.rating?.toFixed(1)}</span>
+            {mode === "discover" && !loading && moviesWithPosters.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 w-full max-w-7xl mt-12 pb-20 animate-fade-in">
+                {moviesWithPosters.map((movie, idx) => (
+                    <Link 
+                    key={idx} 
+                    to={`/movie/${movie.id}`} 
+                    className="group relative overflow-hidden rounded-xl bg-[#161b22] border border-gray-800 hover:border-gray-500 hover:scale-105 transition-all duration-500 shadow-2xl flex flex-col"
+                    >
+                    <div className="relative aspect-[2/3] overflow-hidden">
+                        <img src={movie.posterUrl} alt={movie.title} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60"></div>
                     </div>
-                    {/* Curator Note from AI */}
-                    {movie.curatorNote && (
-                        <p className="text-[10px] text-cyan-200 italic leading-relaxed border-t border-gray-700 pt-2 mt-auto">
-                            "{movie.curatorNote}"
-                        </p>
-                    )}
+                    
+                    <div className="p-4 flex flex-col gap-1 bg-[#161b22] flex-1">
+                        <h3 className="text-white font-bold text-sm leading-tight line-clamp-1">{movie.title}</h3>
+                        <div className="flex justify-between items-center text-xs text-gray-400 mb-2">
+                            <span>{movie.year}</span>
+                            <span className="text-yellow-500 font-bold">★ {movie.rating?.toFixed(1)}</span>
+                        </div>
+                        {/* Curator Note from AI */}
+                        {movie.curatorNote && (
+                            <p className="text-[10px] text-cyan-200 italic leading-relaxed border-t border-gray-700 pt-2 mt-auto">
+                                "{movie.curatorNote}"
+                            </p>
+                        )}
+                    </div>
+                    </Link>
+                ))}
                 </div>
-                </Link>
-            ))}
-            </div>
+            )}
 
             {/* Footer Quote */}
             <div className="mt-auto pt-10 text-white/20 text-xs italic font-serif tracking-widest uppercase text-center pb-6">
