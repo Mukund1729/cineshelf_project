@@ -1,3 +1,6 @@
+================================================
+FILE: src/pages/Profile.jsx
+================================================
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
@@ -147,7 +150,7 @@ const getAvatarUrl = (avatar) => {
                   const uploadRes = await axios.post('/api/user/avatar', formData, { 
             headers: { Authorization: `Bearer ${token}` },
                     withCredentials: true,
-            timeout: 10000
+            timeout: 60000 // Increased timeout to 60s for image uploads
                   });
                   avatarUrl = uploadRes.data?.avatarUrl || uploadRes.data?.user?.avatar || editForm.avatar;
                 } catch (uploadErr) {
