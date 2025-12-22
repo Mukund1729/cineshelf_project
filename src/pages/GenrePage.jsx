@@ -17,17 +17,20 @@ export default function GenrePage() {
     async function fetchAll() {
       // Top Rated
       const top = await axios.get(
-        `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${genreId}&sort_by=vote_average.desc&vote_count.gte=100`
+        `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${genreId}&sort_by=vote_average.desc&vote_count.gte=100`, 
+  { withCredentials: false }
       );
       setTopRated(top.data.results.slice(0, 12));
       // Hidden Gems
       const gems = await axios.get(
-        `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${genreId}&sort_by=vote_average.desc&vote_count.gte=10&vote_count.lte=100`
+        `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${genreId}&sort_by=vote_average.desc&vote_count.gte=10&vote_count.lte=100`, 
+  { withCredentials: false }
       );
       setHiddenGems(gems.data.results.slice(0, 12));
       // New Arrivals
       const arrivals = await axios.get(
-        `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${genreId}&primary_release_date.gte=2024-01-01&sort_by=release_date.desc`
+        `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${genreId}&primary_release_date.gte=2024-01-01&sort_by=release_date.desc`, 
+  { withCredentials: false }
       );
       setNewArrivals(arrivals.data.results.slice(0, 12));
       // Providers for new arrivals
@@ -36,7 +39,8 @@ export default function GenrePage() {
         arrivals.data.results.slice(0, 12).map(async (movie) => {
           try {
             const provRes = await axios.get(
-              `https://api.themoviedb.org/3/movie/${movie.id}/watch/providers?api_key=${apiKey}`
+              `https://api.themoviedb.org/3/movie/${movie.id}/watch/providers?api_key=${apiKey}`, 
+  { withCredentials: false }
             );
             const usProviders = provRes.data.results?.US?.flatrate || [];
             provs[movie.id] = usProviders.map((p) => p.provider_name);
