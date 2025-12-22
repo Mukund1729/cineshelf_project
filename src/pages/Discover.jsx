@@ -3,14 +3,14 @@ import { Link } from "react-router-dom";
 import { searchMovies } from "../api/tmdb";
 import axios from 'axios';
 
-// --- Import Images Correctly ---
+// --- Import Images ---
 import romanticImg from '../9654063.webp'; 
 import melancholicImg from '../wp2392788.webp';
 import intenseImg from '../whiplash.webp';
 import feelGoodImg from '../wp8872346.webp';
 import stylishImg from '../MV5BZjkxNDU3NDktNTcyYi00ZGEyLWI2OWMtYTNkYTgzYzI4MjQ0XkEyXkFqcGdeQVRoaXJkUGFydHlJbmdlc3Rpb25Xb3JrZmxvdw@@._V1_QL75_UX500_CR0,0,500,281_.webp';
 
-// Define Backend URL Explicitly
+
 const BACKEND_URL = 'https://cineshelf-project.onrender.com';
 
 // --- Mood Filter Data ---
@@ -101,7 +101,7 @@ function Discover() {
       return;
     }
 
-    // Helper to call LLM via Axios
+    // ✅ Helper to call LLM using the FULL BACKEND URL
     async function callLLM(messages) {
       const body = { 
         messages, 
@@ -109,7 +109,8 @@ function Discover() {
         model: "mistralai/mistral-7b-instruct",
         max_tokens: 400
       };
-      // Use explicit BACKEND_URL here
+      
+      // Explicitly pointing to Render backend
       const res = await axios.post(`${BACKEND_URL}/api/gpt`, body);
       return res.data.reply || "";
     }
@@ -125,7 +126,7 @@ function Discover() {
         setAskResult(aiText);
       } catch (err) {
         console.error("AI API Error:", err);
-        setError("AI Error: Check your backend connection.");
+        setError("AI Error: Check backend logs/CORS.");
       }
       setLoading(false);
       return;
@@ -178,7 +179,7 @@ function Discover() {
 
     } catch (err) {
       console.error("Discovery Error:", err);
-      setError("AI Discovery failed. Check backend connection.");
+      setError("AI Discovery failed. Backend might be sleeping or unreachable.");
     } finally {
       setLoading(false);
     }
