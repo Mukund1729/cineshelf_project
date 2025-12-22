@@ -11,6 +11,8 @@ import SearchBar from '../components/SearchBar';
 import GenreHighlights from '../components/GenreHighlights';
 import taxiDriverBg from '../components/498279.jpg'; // Import the background image
 
+// ✅ Added Backend URL constant
+const BACKEND_URL = "https://cineshelf-project.onrender.com";
 
 export default function HomePage() {
   // ...existing code...
@@ -20,6 +22,7 @@ export default function HomePage() {
   const [userLists, setUserLists] = useState([]);
   const [userReviews, setUserReviews] = useState([]);
   const [sidebarLoading, setSidebarLoading] = useState(false);
+  
   // Function to refresh sidebar data
   const refreshSidebarData = async () => {
     const token = localStorage.getItem('token');
@@ -122,6 +125,19 @@ export default function HomePage() {
   const [aiInput, setAiInput] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [showWelcomeMessage, setShowWelcomeMessage] = useState(true);
+
+  // ✅ Helper: Get Avatar URL correctly
+  const getAvatarUrl = (avatar) => {
+    if (!avatar) return null;
+    if (avatar.startsWith("http")) return avatar;
+    return `${BACKEND_URL}${avatar}`;
+  };
+
+  // ✅ Helper: Get Default Avatar
+  const getDefaultAvatar = (name) => {
+    const initials = name ? name.substring(0, 2).toUpperCase() : "U";
+    return `https://ui-avatars.com/api/?name=${initials}&background=0D8ABC&color=fff`;
+  };
 
   // Popular movies infinite query
   const {
@@ -324,9 +340,10 @@ export default function HomePage() {
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
                   <img 
-                    src={profile.avatar || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjMDY2NjY2Ii8+CjxjaXJjbGUgY3g9IjE2IiBjeT0iMTAiIHI9IjQiIGZpbGw9IiMzQngzQngzIi8+CjxwYXRoIGQ9Ik0yIDI2QzIgMjQgNC4zIDIyIDcgMjJIMjVDMjcuNyAyMiAzMCAyNCAzMCAyNlYzMEgyVjI2WiIgZmlsbD0iIzNCeDNCODMiLz4KPC9zdmc+Cg=='} 
+                    src={getAvatarUrl(profile.avatar) || getDefaultAvatar(profile.username)} 
                     alt={profile.username} 
                     className="w-8 h-8 rounded-full border-2 border-cyan-400/40 object-cover"
+                    onError={(e) => { e.target.src = getDefaultAvatar(profile.username); }}
                   />
                   <span className="text-cyan-200 font-semibold text-sm hidden md:block">{profile.username}</span>
                 </div>
@@ -405,10 +422,15 @@ export default function HomePage() {
               <div className="w-full text-center text-xs text-gray-400">Loading...</div>
             ) : profile ? (
               <>
-                <img src={profile.avatar || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjMDY2NjY2Ii8+CjxjaXJjbGUgY3g9IjI0IiBjeT0iMTUiIHI9IjYiIGZpbGw9IiMzQngzQngzIi8+CjxwYXRoIGQ9Ik0zIDM5QzMgMzYgNS4zIDMzIDggMzNIMTBDMTIuNyAzMyAxNSAzNiAxNSAzOVY0NUgzVjM5WiIgZmlsbD0iIzNCeDNCODMiLz4KPC9zdmc+Cg=='} alt="avatar" className="w-12 h-12 rounded-full border-2 border-cyan-400/40 object-cover" />
-                <div className="flex-1">
-                  <div className="text-white font-bold text-base">{profile.username}</div>
-                  <div className="text-xs text-cyan-300">{profile.email}</div>
+                <img 
+                  src={getAvatarUrl(profile.avatar) || getDefaultAvatar(profile.username)} 
+                  alt="avatar" 
+                  className="w-12 h-12 rounded-full border-2 border-cyan-400/40 object-cover" 
+                  onError={(e) => { e.target.src = getDefaultAvatar(profile.username); }}
+                />
+                <div className="flex-1 overflow-hidden">
+                  <div className="text-white font-bold text-base truncate">{profile.username}</div>
+                  <div className="text-xs text-cyan-300 truncate">{profile.email}</div>
                 </div>
               </>
             ) : (
@@ -465,15 +487,15 @@ export default function HomePage() {
                     <img 
                       src={movie.poster || movie.posterUrl || (movie.poster_path ? `https://image.tmdb.org/t/p/w92${movie.poster_path}` : null) || 'https://placehold.co/40x56?text=No+Image'} 
                       alt={movie.title} 
-                      className="w-10 h-14 rounded-md object-cover"
+                      className="w-10 h-14 rounded-md object-cover flex-shrink-0"
                       onError={e => { 
                         e.target.onerror = null; 
                         e.target.src = 'https://placehold.co/40x56?text=No+Image'; 
                       }}
                     />
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="text-sm text-white font-semibold truncate">{movie.title}</div>
-                      <div className="text-xs text-gray-400">{movie.mediaType === 'tv' ? 'TV Show' : 'Movie'} • ID: {movie.tmdbId}</div>
+                      <div className="text-xs text-gray-400 truncate">{movie.mediaType === 'tv' ? 'TV Show' : 'Movie'}</div>
                     </div>
                   </div>
                 ))
@@ -508,15 +530,15 @@ export default function HomePage() {
                     <img 
                       src={list.poster || list.posterUrl || `https://image.tmdb.org/t/p/w92${list.poster_path}` || 'https://placehold.co/40x56?text=No+Image'} 
                       alt={list.title} 
-                      className="w-10 h-14 rounded-md object-cover"
+                      className="w-10 h-14 rounded-md object-cover flex-shrink-0"
                       onError={e => { e.target.onerror = null; e.target.src = 'https://placehold.co/40x56?text=No+Image'; }}
                     />
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="text-sm text-white font-semibold truncate">{list.title}</div>
                       {list.rating && (
                         <div className="text-xs text-yellow-300 font-bold">⭐ {list.rating}/10</div>
                       )}
-                      <div className="text-xs text-gray-400">{list.mediaType === 'tv' ? 'TV Show' : 'Movie'} • ID: {list.tmdbId}</div>
+                      <div className="text-xs text-gray-400 truncate">{list.mediaType === 'tv' ? 'TV Show' : 'Movie'}</div>
                     </div>
                   </div>
                 ))
@@ -551,16 +573,14 @@ export default function HomePage() {
                     <img 
                       src={review.poster || review.posterUrl || `https://image.tmdb.org/t/p/w92${review.poster_path}` || 'https://placehold.co/40x56?text=No+Image'} 
                       alt={review.title} 
-                      className="w-10 h-14 rounded-md object-cover"
+                      className="w-10 h-14 rounded-md object-cover flex-shrink-0"
                       onError={e => { e.target.onerror = null; e.target.src = 'https://placehold.co/40x56?text=No+Image'; }}
                     />
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="text-sm text-white font-semibold truncate">{review.title}</div>
                       <div className="text-xs text-yellow-300 font-bold">⭐ {review.rating}/10</div>
-                      <div className="text-xs text-gray-400 truncate">{review.comment || review.review}</div>
-                      {review.mediaType && (
-                        <div className="text-xs text-gray-500">{review.mediaType === 'tv' ? 'TV Show' : 'Movie'}</div>
-                      )}
+                      {/* FIX: Use line-clamp-2 to prevent review text overflow */}
+                      <div className="text-xs text-gray-400 line-clamp-2">{review.comment || review.review}</div>
                     </div>
                   </div>
                 ))
@@ -731,7 +751,8 @@ export default function HomePage() {
                   {/* Overlay with title, rating, quick action */}
                   <div className="absolute inset-0 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition bg-gradient-to-t from-black/80 to-transparent p-3">
                     <div className="flex flex-col gap-1">
-                      <div className="text-white font-bold text-xs font-lato truncate text-shadow">{show.name}</div>
+                      {/* FIX: Added overflow-hidden line-clamp for titles */}
+                      <div className="text-white font-bold text-xs font-lato line-clamp-1 text-shadow overflow-hidden">{show.name}</div>
                       <span className="text-cyan-300 font-bold text-xs">⭐ {show.vote_average?.toFixed(1) ?? 'N/A'}</span>
                       <button
                         className={`mt-1 px-2 py-1 bg-cyan-600/80 hover:bg-cyan-400/90 text-xs text-white rounded shadow font-bold transition flex items-center gap-1 ${addingId === show.id ? 'opacity-60 pointer-events-none' : ''}`}
@@ -792,7 +813,8 @@ export default function HomePage() {
                     {/* Overlay with title, rating, quick action */}
                     <div className="absolute inset-0 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition bg-gradient-to-t from-black/80 to-transparent p-3">
                       <div className="flex flex-col gap-1">
-                        <div className="text-white font-bold text-xs font-lato truncate text-shadow line-clamp-2">{movie.title}</div>
+                        {/* FIX: Added overflow-hidden line-clamp for titles */}
+                        <div className="text-white font-bold text-xs font-lato line-clamp-1 text-shadow overflow-hidden">{movie.title}</div>
                         <span className="text-cyan-300 font-bold text-xs">⭐ {movie.vote_average?.toFixed(1) ?? 'N/A'}</span>
                         <button
                           className={`mt-1 px-2 py-1 bg-cyan-600/80 hover:bg-cyan-400/90 text-xs text-white rounded shadow font-bold transition flex items-center gap-1 ${addingId === movie.id ? 'opacity-60 pointer-events-none' : ''}`}
@@ -890,39 +912,44 @@ export default function HomePage() {
           <p className="text-xs text-gray-400 font-lato">© {new Date().getFullYear()} visual.cineaste. All rights reserved.</p>
         </div>
       </footer>
-      {/* Welcome Message */}
+      
+      {/* ✅ FIX: New Professional Welcome Message (Glassmorphism) */}
       {showWelcomeMessage && (
-        <div className="fixed bottom-24 right-6 z-50 animate-bounce">
-          <div className="bg-gradient-to-br from-pink-500 via-purple-500 to-cyan-500 rounded-2xl shadow-2xl p-4 max-w-xs">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
+        <div className="fixed bottom-24 right-6 z-50 animate-fade-in-up">
+          <div className="bg-[#161b22]/90 backdrop-blur-xl border border-cyan-500/30 rounded-2xl shadow-2xl p-5 max-w-xs relative group">
+            {/* Close Button */}
+            <button 
+              onClick={() => setShowWelcomeMessage(false)}
+              className="absolute top-2 right-2 text-gray-400 hover:text-white transition-colors p-1"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                <span className="text-lg">🤖</span>
               </div>
               <div>
-                <h3 className="text-white font-bold text-sm">🎬 Meet CineSage!</h3>
-                <p className="text-white/90 text-xs">Your AI Film Expert</p>
+                <h3 className="text-white font-bold text-sm tracking-wide">Meet CineSage!</h3>
+                <p className="text-cyan-400 text-xs font-medium">AI Film Expert</p>
               </div>
             </div>
-            <p className="text-white/90 text-xs mb-3">Ask me about movies, directors, or get personalized recommendations!</p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  setShowAIChat(true);
-                  setShowWelcomeMessage(false);
-                }}
-                className="flex-1 bg-white/20 text-white text-xs font-semibold py-2 px-3 rounded-lg hover:bg-white/30 transition-colors"
-              >
-                Start Chat
-              </button>
-              <button
-                onClick={() => setShowWelcomeMessage(false)}
-                className="text-white/70 text-xs hover:text-white transition-colors"
-              >
-                Dismiss
-              </button>
-            </div>
+            
+            <p className="text-gray-300 text-xs leading-relaxed mb-4">
+              Need a recommendation? Ask me about movies, directors, or get personalized picks based on your mood.
+            </p>
+            
+            <button
+              onClick={() => {
+                setShowAIChat(true);
+                setShowWelcomeMessage(false);
+              }}
+              className="w-full bg-white/10 hover:bg-white/20 border border-white/10 text-white text-xs font-bold py-2.5 px-4 rounded-lg transition-all duration-200 hover:scale-[1.02]"
+            >
+              Chat Now
+            </button>
           </div>
         </div>
       )}
@@ -933,32 +960,30 @@ export default function HomePage() {
         {!showAIChat && (
           <button
             onClick={() => setShowAIChat(true)}
-            className="w-16 h-16 bg-gradient-to-br from-pink-500 via-purple-500 to-cyan-500 rounded-full shadow-2xl hover:shadow-pink-400/50 hover:scale-110 transition-all duration-300 flex items-center justify-center group animate-pulse"
+            className="w-14 h-14 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full shadow-lg hover:shadow-cyan-500/40 hover:scale-110 transition-all duration-300 flex items-center justify-center group"
             aria-label="Chat with CineSage"
           >
             <div className="relative">
-              <svg className="w-8 h-8 text-white group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
               </svg>
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-bounce"></div>
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-[#0d1117]"></div>
             </div>
           </button>
         )}
 
         {/* AI Chat Window */}
         {showAIChat && (
-          <div className="w-80 h-96 bg-gradient-to-br from-[#181c24]/95 to-[#232526]/95 rounded-2xl shadow-2xl border border-[#232526]/60 backdrop-blur-xl flex flex-col">
+          <div className="w-80 h-96 bg-[#161b22]/95 backdrop-blur-xl border border-cyan-500/30 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in-up">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-[#232526]/40">
+            <div className="flex items-center justify-between p-4 border-b border-white/10 bg-white/5">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-pink-500 via-purple-500 to-cyan-500 rounded-full flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                  </svg>
+                <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
+                  <span className="text-sm">🤖</span>
                 </div>
                 <div>
                   <h3 className="text-white font-bold text-sm">CineSage</h3>
-                  <p className="text-pink-300 text-xs">Your Film Expert</p>
+                  <p className="text-cyan-400 text-[10px] font-medium">Online</p>
                 </div>
               </div>
               <button
@@ -972,35 +997,33 @@ export default function HomePage() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
               {aiMessages.length === 0 && (
-                <div className="text-center text-gray-400 text-sm py-8">
-                  <svg className="w-8 h-8 mx-auto mb-2 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                  </svg>
-                  <p className="text-pink-300 font-semibold mb-1">🎬 Welcome to CineSage!</p>
-                  <p>Ask me about movies, directors, or get recommendations!</p>
+                <div className="text-center text-gray-400 text-xs py-8">
+                  <p className="mb-2">👋 Hi! I'm CineSage.</p>
+                  <p>I can help you find movies based on your mood or answer cinema questions.</p>
                 </div>
               )}
               
               {aiMessages.map((message, index) => (
                 <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+                  <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-xs leading-relaxed ${
                     message.role === 'user' 
-                      ? 'bg-gradient-to-br from-cyan-500 to-blue-600 text-white' 
-                      : 'bg-[#232526]/80 text-gray-200'
+                      ? 'bg-cyan-600 text-white rounded-tr-none' 
+                      : 'bg-[#232b35] text-gray-200 border border-white/5 rounded-tl-none'
                   }`}>
-                    <p className="text-sm">{message.content}</p>
+                    {message.content}
                   </div>
                 </div>
               ))}
               
               {aiLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-[#232526]/80 rounded-2xl px-4 py-2">
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-pink-400 border-t-transparent"></div>
-                      <span className="text-sm text-gray-300">🎬 CineSage is analyzing...</span>
+                  <div className="bg-[#232b35] border border-white/5 rounded-2xl rounded-tl-none px-4 py-3 flex items-center gap-2">
+                    <div className="flex gap-1">
+                      <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+                      <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
                     </div>
                   </div>
                 </div>
@@ -1008,23 +1031,23 @@ export default function HomePage() {
             </div>
 
             {/* Input */}
-            <form onSubmit={handleAISubmit} className="p-4 border-t border-[#232526]/40">
-              <div className="flex gap-2">
+            <form onSubmit={handleAISubmit} className="p-3 border-t border-white/10 bg-white/5">
+              <div className="flex gap-2 relative">
                 <input
                   type="text"
                   value={aiInput}
                   onChange={(e) => setAiInput(e.target.value)}
-                  placeholder="Ask CineSage about films..."
-                  className="flex-1 bg-[#232526]/60 text-white text-sm rounded-lg px-3 py-2 outline-none border border-[#232526]/40 focus:border-pink-400/60"
+                  placeholder="Type a message..."
+                  className="flex-1 bg-[#0d1117] text-white text-xs rounded-full px-4 py-3 outline-none border border-white/10 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all placeholder-gray-500"
                   disabled={aiLoading}
                 />
                 <button
                   type="submit"
                   disabled={aiLoading || !aiInput.trim()}
-                  className="px-3 py-2 bg-gradient-to-br from-pink-500 to-purple-600 text-white rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="absolute right-2 top-1.5 p-1.5 bg-cyan-600 text-white rounded-full hover:bg-cyan-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
                   </svg>
                 </button>
               </div>
