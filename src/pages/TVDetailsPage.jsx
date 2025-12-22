@@ -32,13 +32,16 @@ const TVDetailsPage = () => {
               api_key: API_KEY,
               language: 'en-US',
               append_to_response: 'credits,release_dates,videos,images,external_ids,content_ratings,watch/providers'
-            }
+            },
+    withCredentials: false
           }),
           axios.get(`https://api.themoviedb.org/3/tv/${id}/reviews`, {
-            params: { api_key: API_KEY, language: 'en-US' }
+            params: { api_key: API_KEY, language: 'en-US' },
+    withCredentials: false
           }),
           axios.get(`https://api.themoviedb.org/3/tv/${id}/recommendations`, {
-            params: { api_key: API_KEY, language: 'en-US' }
+            params: { api_key: API_KEY, language: 'en-US' },
+    withCredentials: false
           })
         ]);
         const showData = detailRes.data;
