@@ -16,46 +16,11 @@ const BACKEND_URL = 'https://cineshelf-project.onrender.com';
 
 // --- Mood Filter Data ---
 const moods = [
-  {
-    name: "Romantic",
-    color: "#dc2626",
-    bgColor: "#dc2626",
-    bgPoster: romanticImg,
-    accentColor: "#ef4444",
-    gradient: "from-red-600 to-red-500"
-  },
-  {
-    name: "Melancholic",
-    color: "#f472b6",
-    bgColor: "#f472b6",
-    bgPoster: melancholicImg,
-    accentColor: "#f9a8d4",
-    gradient: "from-pink-400 to-pink-300"
-  },
-  {
-    name: "Intense",
-    color: "#6b7280",
-    bgColor: "#6b7280",
-    bgPoster: intenseImg,
-    accentColor: "#9ca3af",
-    gradient: "from-gray-500 to-gray-400"
-  },
-  {
-    name: "Feel-Good",
-    color: "#3b82f6",
-    bgColor: "#3b82f6",
-    bgPoster: feelGoodImg,
-    accentColor: "#60a5fa",
-    gradient: "from-blue-500 to-blue-400"
-  },
-  {
-    name: "Stylish",
-    color: "#f97316",
-    bgColor: "#f97316",
-    bgPoster: stylishImg,
-    accentColor: "#fb923c",
-    gradient: "from-orange-500 to-orange-400"
-  }
+  { name: "Romantic", color: "#dc2626", bgColor: "#dc2626", bgPoster: romanticImg, accentColor: "#ef4444" },
+  { name: "Melancholic", color: "#f472b6", bgColor: "#f472b6", bgPoster: melancholicImg, accentColor: "#f9a8d4" },
+  { name: "Intense", color: "#6b7280", bgColor: "#6b7280", bgPoster: intenseImg, accentColor: "#9ca3af" },
+  { name: "Feel-Good", color: "#3b82f6", bgColor: "#3b82f6", bgPoster: feelGoodImg, accentColor: "#60a5fa" },
+  { name: "Stylish", color: "#f97316", bgColor: "#f97316", bgPoster: stylishImg, accentColor: "#fb923c" }
 ];
 
 function Discover() {
@@ -80,11 +45,9 @@ function Discover() {
   }, []);
 
   const fetchHistory = async () => {
-    // 1. Load local history first for speed
     const local = localStorage.getItem('searchHistory');
     if (local) setHistory(JSON.parse(local));
 
-    // 2. Try loading from DB
     const token = localStorage.getItem('token');
     if (!token) return;
 
@@ -94,22 +57,18 @@ function Discover() {
       });
       if(res.data && Array.isArray(res.data)) {
         setHistory(res.data);
-        localStorage.setItem('searchHistory', JSON.stringify(res.data)); // Sync local
+        localStorage.setItem('searchHistory', JSON.stringify(res.data)); 
       }
-    } catch (err) {
-      // Silent fail is fine here
-    }
+    } catch (err) { }
   };
 
   // --- Save History ---
   const saveToHistory = async (query, type) => {
-    // 1. Update UI immediately
     const newItem = { query, type, timestamp: new Date() };
     const newHistory = [newItem, ...history].slice(0, 20);
     setHistory(newHistory);
     localStorage.setItem('searchHistory', JSON.stringify(newHistory));
 
-    // 2. Save to DB if logged in
     const token = localStorage.getItem('token');
     if (token) {
         try {
@@ -117,9 +76,7 @@ function Discover() {
                 { query, type },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-        } catch (err) {
-            console.error("Failed to save history to DB");
-        }
+        } catch (err) { console.error("Failed to save history to DB"); }
     }
   };
 
@@ -153,14 +110,12 @@ function Discover() {
       return;
     }
 
-    // Reset UI
     setError("");
     setAskResult("");
     setMoviesWithPosters([]);
     setLoading(true);
     setInput(cleaned);
 
-    // Save to History
     saveToHistory(cleaned, mode);
 
     async function callLLM(messages) {
@@ -175,15 +130,13 @@ function Discover() {
     }
 
     try {
-      // --- ASK MODE ---
       if (mode === "ask") {
         const messages = [
-          { role: "system", content: "You are a professional film critic and historian. Provide a detailed, concise, and professional answer in plain text or markdown." },
+          { role: "system", content: "You are a professional film critic and historian. Provide a detailed, concise, and professional answer." },
           { role: "user", content: cleaned }
         ];
         const aiText = await callLLM(messages);
         
-        // Handle if AI returns JSON instead of text
         try {
             const cleanText = aiText.replace(/```json/g, "").replace(/```/g, "").trim();
             if (cleanText.startsWith('{')) {
@@ -196,16 +149,12 @@ function Discover() {
             setAskResult(aiText);
         }
         
-      } 
-      // --- DISCOVER MODE ---
-      else {
+      } else {
         const moodPrompt = `The user's current mood is: ${selectedMood}.`;
         const messages = [
           {
             role: "system",
-            content: `You are a film curator. Return ONLY a raw JSON array of 6 movie objects.
-            Format: [{"title": "Name", "year": "YYYY", "reason": "Short reason why"}]. 
-            Do not add markdown formatting. ${moodPrompt}`
+            content: `You are a film curator. Return ONLY a raw JSON array of 6 movie objects. Format: [{"title": "Name", "year": "YYYY", "reason": "Short reason why"}]. Do not add markdown formatting. ${moodPrompt}`
           },
           { role: "user", content: cleaned }
         ];
@@ -214,10 +163,7 @@ function Discover() {
         let titles = [];
 
         try {
-          // ✅ ROBUST PARSING LOGIC START
           let cleanJson = aiText.replace(/```json/g, "").replace(/```/g, "").trim();
-          
-          // Find the actual JSON array in the text
           const firstBracket = cleanJson.indexOf('[');
           const lastBracket = cleanJson.lastIndexOf(']');
           
@@ -225,7 +171,6 @@ function Discover() {
             cleanJson = cleanJson.substring(firstBracket, lastBracket + 1);
             titles = JSON.parse(cleanJson);
           } else {
-            // Check if it's a single answer object
             const firstCurly = cleanJson.indexOf('{');
             const lastCurly = cleanJson.lastIndexOf('}');
             if (firstCurly !== -1 && lastCurly !== -1) {
@@ -239,28 +184,22 @@ function Discover() {
             }
             throw new Error("Invalid JSON structure");
           }
-          // ✅ ROBUST PARSING LOGIC END
-
         } catch (e) {
-          console.error("JSON Parse fail, falling back to text", e);
+          console.error("JSON Parse fail, falling back to text");
           setMode("ask");
-          setAskResult(aiText); // Fallback: Show the raw text if parsing fails
+          setAskResult(aiText);
           setLoading(false);
           return;
         }
 
-        // Fetch TMDB Details in Parallel
         const results = await Promise.all(
           titles.map(async (item) => {
             try {
               let searchTitle = typeof item === 'string' ? item : item.title;
               searchTitle = searchTitle.replace(/\s*\(\d{4}\).*/, "").trim();
-              
               const tmdbRes = await searchMovies(searchTitle);
               const best = tmdbRes.results?.[0];
-              
               if (!best || !best.poster_path) return null;
-              
               return {
                 id: best.id,
                 title: best.title,
@@ -277,12 +216,8 @@ function Discover() {
 
         const filtered = results.filter(Boolean);
         setMoviesWithPosters(filtered);
-        
-        if (filtered.length === 0) {
-             setError("No matching movies found in our archives.");
-        }
+        if (filtered.length === 0) setError("No matching movies found in our archives.");
       }
-
     } catch (err) {
       console.error("Error:", err);
       setError("Connection to the Curator (AI) failed. Please try again.");
@@ -295,9 +230,9 @@ function Discover() {
     <div className="flex h-screen w-full bg-black overflow-hidden font-sans text-white">
       
       {/* --- LEFT SIDEBAR: HISTORY --- */}
-      <aside className={`flex-shrink-0 bg-[#0d1117] border-r border-[#30363d] flex flex-col transition-all duration-300 z-50 ${showSidebar ? 'w-64 translate-x-0' : 'w-0 -translate-x-full opacity-0'} overflow-hidden h-full fixed md:relative`}>
+      <aside className={`flex-shrink-0 bg-[#0d1117] border-r border-[#30363d] flex flex-col transition-all duration-300 z-50 ${showSidebar ? 'w-64 translate-x-0' : 'w-0 -translate-x-full opacity-0'} overflow-hidden h-full fixed md:relative shadow-2xl`}>
         <div className="p-6 border-b border-[#30363d] flex items-center justify-between">
-          <Link to="/" className="text-lg font-bold font-playfair tracking-wide text-white">
+          <Link to="/" className="text-lg font-bold font-playfair tracking-wide text-white hover:text-cyan-400 transition-colors">
             visual.cineaste
           </Link>
           <button onClick={() => setShowSidebar(false)} className="md:hidden text-gray-400">
@@ -313,7 +248,7 @@ function Discover() {
             {history.length > 0 && (
                 <button 
                     onClick={() => { setHistory([]); localStorage.removeItem('searchHistory'); }} 
-                    className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1"
+                    className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1 transition-colors"
                 >
                     <FiTrash2 />
                 </button>
@@ -346,15 +281,17 @@ function Discover() {
       </aside>
 
       {/* --- RIGHT MAIN CONTENT --- */}
-      <main className="flex-1 relative flex flex-col h-full w-full">
+      <main className="flex-1 relative flex flex-col h-full w-full bg-black">
         
-        {/* Toggle Sidebar Button (Visible when sidebar hidden or mobile) */}
-        <button 
-            onClick={() => setShowSidebar(!showSidebar)}
-            className={`absolute top-4 left-4 z-50 p-2 bg-black/50 backdrop-blur rounded-full text-white hover:bg-white/10 transition-colors ${showSidebar ? 'hidden md:hidden' : 'block'}`}
-        >
-            <FiMenu />
-        </button>
+        {/* Toggle Sidebar Button (Mobile) */}
+        {!showSidebar && (
+            <button 
+                onClick={() => setShowSidebar(true)}
+                className="absolute top-4 left-4 z-50 p-2 bg-black/50 backdrop-blur rounded-full text-white hover:bg-white/10 transition-colors"
+            >
+                <FiMenu />
+            </button>
+        )}
 
         {/* Dynamic Background */}
         <div className="absolute inset-0 w-full h-full z-0" style={{
@@ -368,17 +305,19 @@ function Discover() {
           background: `linear-gradient(135deg, ${currentMood.color}40 0%, #000000 90%)`,
         }} />
         
-        {/* Scrollable Content Area */}
-        <div className="relative z-10 w-full h-full overflow-y-auto no-scrollbar flex flex-col items-center pt-20 pb-10 px-4 md:px-10">
+        {/* ✅ FIXED HEADER (Sticky Top) */}
+        <div className="relative z-30 flex-shrink-0 w-full flex flex-col items-center pt-6 pb-2 px-4 md:px-10 bg-gradient-to-b from-black/90 via-black/60 to-transparent backdrop-blur-sm border-b border-white/5">
             
             {/* Mood Chips */}
-            <div className="flex gap-3 py-3 px-6 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 mb-12 max-w-full overflow-x-auto no-scrollbar">
+            <div className="flex gap-3 py-2 px-1 max-w-full overflow-x-auto no-scrollbar mb-4">
                 {moods.map((mood) => (
                 <button
                     key={mood.name}
                     onClick={() => handleMoodChange(mood)}
-                    className={`rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 whitespace-nowrap ${
-                    selectedMood === mood.name ? 'text-white scale-105 shadow-lg' : 'text-gray-400 hover:text-white'
+                    className={`rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 whitespace-nowrap border ${
+                    selectedMood === mood.name 
+                        ? 'text-white scale-105 shadow-lg border-white/20' 
+                        : 'text-gray-400 border-transparent hover:text-white hover:bg-white/5'
                     }`}
                     style={{ 
                     background: selectedMood === mood.name ? `linear-gradient(90deg, ${mood.color}, ${mood.accentColor})` : 'transparent',
@@ -390,9 +329,9 @@ function Discover() {
             </div>
 
             {/* Input Area */}
-            <div className="w-full max-w-3xl flex flex-col gap-0 shadow-2xl rounded-2xl overflow-hidden border border-white/20">
+            <div className="w-full max-w-3xl flex flex-col gap-0 shadow-2xl rounded-2xl overflow-hidden border border-white/20 relative z-40">
                 {/* Mode Tabs */}
-                <div className="flex w-full bg-black/60 backdrop-blur-md">
+                <div className="flex w-full bg-[#161b22]/90 backdrop-blur-md">
                     <button 
                         className={`flex-1 py-3 text-sm font-semibold tracking-wide transition-colors ${mode === "discover" ? "bg-white/10 text-white" : "text-gray-500 hover:text-gray-300"}`} 
                         onClick={() => setMode("discover")}
@@ -408,18 +347,18 @@ function Discover() {
                 </div>
 
                 {/* Input Field */}
-                <form className="flex w-full bg-black/40 backdrop-blur-xl p-2" onSubmit={(e) => handleSearch(e)}>
+                <form className="flex w-full bg-black/60 backdrop-blur-xl p-2" onSubmit={(e) => handleSearch(e)}>
                     <input
                         type="text"
                         value={input}
                         onChange={e => setInput(e.target.value)}
                         placeholder={mode === "discover" ? "Describe a vibe: '80s neon noir with synth music'..." : "Ask: 'Why is The Godfather a masterpiece?'..."}
-                        className="flex-1 bg-transparent outline-none text-white placeholder-gray-500 text-lg px-4 py-3"
+                        className="flex-1 bg-transparent outline-none text-white placeholder-gray-400 text-base md:text-lg px-4 py-3"
                         disabled={loading}
                     />
                     <button 
                         type="submit" 
-                        className="px-8 py-2 rounded-xl text-white font-bold transition-all hover:scale-105 shadow-lg" 
+                        className="px-6 md:px-8 py-2 rounded-xl text-white font-bold transition-all hover:scale-105 shadow-lg whitespace-nowrap" 
                         style={{ background: `linear-gradient(135deg, ${currentMood.color}, ${currentMood.accentColor})` }}
                         disabled={loading}
                     >
@@ -427,9 +366,13 @@ function Discover() {
                     </button>
                 </form>
             </div>
+        </div>
 
+        {/* ✅ SCROLLABLE CONTENT AREA */}
+        <div className="relative z-10 flex-1 overflow-y-auto no-scrollbar w-full px-4 md:px-10 pb-10">
+            
             {/* Error Message */}
-            {error && <div className="mt-6 px-6 py-3 bg-red-500/20 text-red-200 border border-red-500/50 rounded-lg text-sm backdrop-blur-md animate-fade-in">{error}</div>}
+            {error && <div className="mt-6 mx-auto max-w-3xl px-6 py-3 bg-red-500/20 text-red-200 border border-red-500/50 rounded-lg text-sm backdrop-blur-md animate-fade-in text-center">{error}</div>}
 
             {/* LOADING STATE */}
             {loading && (
@@ -443,23 +386,23 @@ function Discover() {
 
             {/* ASK RESULTS */}
             {mode === "ask" && askResult && !loading && (
-                <div className="mt-12 p-8 rounded-2xl bg-[#161b22]/90 backdrop-blur-xl text-white max-w-4xl text-lg shadow-2xl border border-white/10 leading-relaxed font-light animate-fade-in">
+                <div className="mt-8 mx-auto p-8 rounded-2xl bg-[#161b22]/90 backdrop-blur-xl text-white max-w-4xl text-lg shadow-2xl border border-white/10 leading-relaxed font-light animate-fade-in">
                     <div className="flex items-center gap-2 mb-4 text-cyan-400">
                         <FiMessageSquare />
                         <span className="text-xs font-bold uppercase tracking-wider">Expert Analysis</span>
                     </div>
-                    <div className="whitespace-pre-line">{askResult}</div>
+                    <div className="whitespace-pre-line text-gray-200">{askResult}</div>
                 </div>
             )}
 
             {/* DISCOVER RESULTS GRID */}
             {mode === "discover" && !loading && moviesWithPosters.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 w-full max-w-7xl mt-12 pb-20 animate-fade-in">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 w-full max-w-7xl mx-auto mt-8 animate-fade-in">
                 {moviesWithPosters.map((movie, idx) => (
                     <Link 
                     key={idx} 
                     to={`/movie/${movie.id}`} 
-                    className="group relative overflow-hidden rounded-xl bg-[#161b22] border border-gray-800 hover:border-gray-500 hover:scale-105 transition-all duration-500 shadow-2xl flex flex-col"
+                    className="group relative overflow-hidden rounded-xl bg-[#161b22] border border-gray-800 hover:border-gray-500 hover:scale-105 transition-all duration-500 shadow-2xl flex flex-col h-full"
                     >
                     <div className="relative aspect-[2/3] overflow-hidden">
                         <img src={movie.posterUrl} alt={movie.title} className="w-full h-full object-cover" />
@@ -474,7 +417,7 @@ function Discover() {
                         </div>
                         {/* Curator Note from AI */}
                         {movie.curatorNote && (
-                            <p className="text-[10px] text-cyan-200 italic leading-relaxed border-t border-gray-700 pt-2 mt-auto">
+                            <p className="text-[10px] text-cyan-200 italic leading-relaxed border-t border-gray-700 pt-2 mt-auto line-clamp-3">
                                 "{movie.curatorNote}"
                             </p>
                         )}
@@ -484,11 +427,12 @@ function Discover() {
                 </div>
             )}
 
-            {/* Footer Quote */}
-            <div className="mt-auto pt-10 text-white/20 text-xs italic font-serif tracking-widest uppercase text-center pb-6">
-                “He remembers those vanished years…”
-            </div>
-
+            {/* Footer Quote (Only show if no results yet to keep clean) */}
+            {!loading && moviesWithPosters.length === 0 && !askResult && (
+                <div className="mt-20 text-white/20 text-xs italic font-serif tracking-widest uppercase text-center">
+                    “He remembers those vanished years…”
+                </div>
+            )}
         </div>
       </main>
     </div>
