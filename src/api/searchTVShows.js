@@ -15,6 +15,7 @@ export const searchTVShows = async (query, options) => {
         query,
         page: options && options.page ? options.page : 1,
       },
+       withCredentials: false
     });
     return {
       results: response.data.results,
