@@ -35,7 +35,7 @@ export default function HomePage() {
         axios.get('/api/list', { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }),
         axios.get('/api/review', { headers: { Authorization: `Bearer ${token}` }, withCredentials: true })
       ]);
-      setProfile(profileRes.data || null);
+setProfile(profileRes.data?.user || profileRes.data || null);
       setWatchlist(watchlistRes.data?.movies || []);
       setUserLists(listsRes.data?.movies || []);
       setUserReviews(reviewsRes.data || []);
