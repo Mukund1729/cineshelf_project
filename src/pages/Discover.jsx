@@ -3,14 +3,15 @@ import { Link } from "react-router-dom";
 import { searchMovies } from "../api/tmdb";
 import axios from 'axios';
 
-// --- Import Images ---
+// --- Import Images Correctly ---
 import romanticImg from '../9654063.webp'; 
 import melancholicImg from '../wp2392788.webp';
 import intenseImg from '../whiplash.webp';
 import feelGoodImg from '../wp8872346.webp';
 import stylishImg from '../MV5BZjkxNDU3NDktNTcyYi00ZGEyLWI2OWMtYTNkYTgzYzI4MjQ0XkEyXkFqcGdeQVRoaXJkUGFydHlJbmdlc3Rpb25Xb3JrZmxvdw@@._V1_QL75_UX500_CR0,0,500,281_.webp';
 
-
+// ✅ CRITICAL FIX: Define the full backend URL here
+// Since Vercel cannot handle POST requests, we must point to Render directly.
 const BACKEND_URL = 'https://cineshelf-project.onrender.com';
 
 // --- Mood Filter Data ---
@@ -101,7 +102,7 @@ function Discover() {
       return;
     }
 
-    // ✅ Helper to call LLM using the FULL BACKEND URL
+    // ✅ Helper to call LLM via Axios using the explicit BACKEND_URL
     async function callLLM(messages) {
       const body = { 
         messages, 
@@ -110,7 +111,7 @@ function Discover() {
         max_tokens: 400
       };
       
-      // Explicitly pointing to Render backend
+      // FIX: Use full URL so request goes to Render, not Vercel
       const res = await axios.post(`${BACKEND_URL}/api/gpt`, body);
       return res.data.reply || "";
     }
