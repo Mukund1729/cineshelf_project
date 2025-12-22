@@ -64,7 +64,8 @@ export default function GenreHighlights() {
     GENRES.forEach(async (genre) => {
       if (genre.featuredMovieId) {
         try {
-          const res = await axios.get(`https://api.themoviedb.org/3/movie/${genre.featuredMovieId}?api_key=${apiKey}`);
+          const res = await axios.get(`https://api.themoviedb.org/3/movie/${genre.featuredMovieId}?api_key=${apiKey}`, 
+  { withCredentials: false });
           setFeaturedPosters(prev => ({ ...prev, [genre.name]: res.data.poster_path }));
         } catch {}
       }
@@ -81,7 +82,8 @@ export default function GenreHighlights() {
       topMovies = await Promise.all(
         CURATED_TOP_RATED[genre.name].map(async (id) => {
           try {
-            const res = await axios.get(`https://api.themoviedb.org/3/movie/${id}?api_key=${apiKey}`);
+            const res = await axios.get(`https://api.themoviedb.org/3/movie/${id}?api_key=${apiKey}`, 
+  { withCredentials: false });
             return res.data;
           } catch {
             return null;
@@ -102,7 +104,8 @@ export default function GenreHighlights() {
       gems = await Promise.all(
         CURATED_HIDDEN_GEMS[genre.name].map(async (id) => {
           try {
-            const res = await axios.get(`https://api.themoviedb.org/3/movie/${id}?api_key=${apiKey}`);
+            const res = await axios.get(`https://api.themoviedb.org/3/movie/${id}?api_key=${apiKey}`, 
+  { withCredentials: false });
             return res.data;
           } catch {
             return null;
@@ -113,7 +116,8 @@ export default function GenreHighlights() {
     } else {
       // fallback to discover
       const gemsRes = await axios.get(
-        `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${genre.id}&vote_average.gte=6&vote_count.lte=300&sort_by=vote_average.desc`
+        `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${genre.id}&vote_average.gte=6&vote_count.lte=300&sort_by=vote_average.desc`, 
+  { withCredentials: false }
       );
       gems = gemsRes.data.results.slice(0, 10);
     }
@@ -122,7 +126,8 @@ export default function GenreHighlights() {
     const sixMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 6, today.getDate());
     const dateStr = sixMonthsAgo.toISOString().split('T')[0];
     const arrivals = await axios.get(
-      `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${genre.id}&primary_release_date.gte=${dateStr}&region=IN&sort_by=release_date.desc`
+      `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${genre.id}&primary_release_date.gte=${dateStr}&region=IN&sort_by=release_date.desc`, 
+  { withCredentials: false }
     );
     // Providers for new arrivals (filter only those with OTT in IN)
     const ottMovies = [];
@@ -131,7 +136,8 @@ export default function GenreHighlights() {
       arrivals.data.results.slice(0, 30).map(async (movie) => {
         try {
           const provRes = await axios.get(
-            `https://api.themoviedb.org/3/movie/${movie.id}/watch/providers?api_key=${apiKey}`
+            `https://api.themoviedb.org/3/movie/${movie.id}/watch/providers?api_key=${apiKey}`, 
+  { withCredentials: false }
           );
           const inProviders = provRes.data.results?.IN?.flatrate || [];
           if (inProviders.length > 0) {
