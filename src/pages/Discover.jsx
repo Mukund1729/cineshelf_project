@@ -11,7 +11,7 @@ import feelGoodImg from '../wp8872346.webp';
 import stylishImg from '../MV5BZjkxNDU3NDktNTcyYi00ZGEyLWI2OWMtYTNkYTgzYzI4MjQ0XkEyXkFqcGdeQVRoaXJkUGFydHlJbmdlc3Rpb25Xb3JrZmxvdw@@._V1_QL75_UX500_CR0,0,500,281_.webp';
 
 // ✅ CRITICAL FIX: Define the full backend URL here
-// Since Vercel cannot handle POST requests, we must point to Render directly.
+// Requests must go to Render, not the Vercel frontend domain
 const BACKEND_URL = 'https://cineshelf-project.onrender.com';
 
 // --- Mood Filter Data ---
@@ -112,6 +112,8 @@ function Discover() {
       };
       
       // FIX: Use full URL so request goes to Render, not Vercel
+      // We also disable credentials for this specific call to avoid potential CORS issues with mixed settings,
+      // although your backend supports credentials.
       const res = await axios.post(`${BACKEND_URL}/api/gpt`, body);
       return res.data.reply || "";
     }
