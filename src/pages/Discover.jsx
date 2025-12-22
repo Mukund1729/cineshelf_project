@@ -3,13 +3,23 @@ import { Link } from "react-router-dom";
 import { searchMovies } from "../api/tmdb";
 import axios from 'axios';
 
+// --- Import Images Correctly ---
+import romanticImg from '../9654063.webp'; 
+import melancholicImg from '../wp2392788.webp';
+import intenseImg from '../whiplash.webp';
+import feelGoodImg from '../wp8872346.webp';
+import stylishImg from '../MV5BZjkxNDU3NDktNTcyYi00ZGEyLWI2OWMtYTNkYTgzYzI4MjQ0XkEyXkFqcGdeQVRoaXJkUGFydHlJbmdlc3Rpb25Xb3JrZmxvdw@@._V1_QL75_UX500_CR0,0,500,281_.webp';
+
+// Define Backend URL Explicitly
+const BACKEND_URL = 'https://cineshelf-project.onrender.com';
+
 // --- Mood Filter Data ---
 const moods = [
   {
     name: "Romantic",
     color: "#dc2626",
     bgColor: "#dc2626",
-    bgPoster: "/in-the-mood-for-love.jpeg",
+    bgPoster: romanticImg,
     accentColor: "#ef4444",
     gradient: "from-red-600 to-red-500"
   },
@@ -17,7 +27,7 @@ const moods = [
     name: "Melancholic",
     color: "#f472b6",
     bgColor: "#f472b6",
-    bgPoster: "/wp2392788.webp",
+    bgPoster: melancholicImg,
     accentColor: "#f9a8d4",
     gradient: "from-pink-400 to-pink-300"
   },
@@ -25,7 +35,7 @@ const moods = [
     name: "Intense",
     color: "#6b7280",
     bgColor: "#6b7280",
-    bgPoster: "/whiplash.webp",
+    bgPoster: intenseImg,
     accentColor: "#9ca3af",
     gradient: "from-gray-500 to-gray-400"
   },
@@ -33,7 +43,7 @@ const moods = [
     name: "Feel-Good",
     color: "#3b82f6",
     bgColor: "#3b82f6",
-    bgPoster: "/wp8872346.webp",
+    bgPoster: feelGoodImg,
     accentColor: "#60a5fa",
     gradient: "from-blue-500 to-blue-400"
   },
@@ -41,7 +51,7 @@ const moods = [
     name: "Stylish",
     color: "#f97316",
     bgColor: "#f97316",
-    bgPoster: "/MV5BZjkxNDU3NDktNTcyYi00ZGEyLWI2OWMtYTNkYTgzYzI4MjQ0XkEyXkFqcGdeQVRoaXJkUGFydHlJbmdlc3Rpb25Xb3JrZmxvdw@@._V1_QL75_UX500_CR0,0,500,281_.webp",
+    bgPoster: stylishImg,
     accentColor: "#fb923c",
     gradient: "from-orange-500 to-orange-400"
   }
@@ -91,7 +101,7 @@ function Discover() {
       return;
     }
 
-    // Helper to call LLM via Axios (Respects main.jsx baseURL)
+    // Helper to call LLM via Axios
     async function callLLM(messages) {
       const body = { 
         messages, 
@@ -99,7 +109,8 @@ function Discover() {
         model: "mistralai/mistral-7b-instruct",
         max_tokens: 400
       };
-      const res = await axios.post("/api/gpt", body);
+      // Use explicit BACKEND_URL here
+      const res = await axios.post(`${BACKEND_URL}/api/gpt`, body);
       return res.data.reply || "";
     }
 
@@ -113,7 +124,8 @@ function Discover() {
         const aiText = await callLLM(messages);
         setAskResult(aiText);
       } catch (err) {
-        setError("AI Error: Check your backend logs.");
+        console.error("AI API Error:", err);
+        setError("AI Error: Check your backend connection.");
       }
       setLoading(false);
       return;
@@ -165,7 +177,8 @@ function Discover() {
       if (filtered.length === 0) setError("No matching movies found on TMDB.");
 
     } catch (err) {
-      setError("AI Discovery failed. Check OpenRouter connection.");
+      console.error("Discovery Error:", err);
+      setError("AI Discovery failed. Check backend connection.");
     } finally {
       setLoading(false);
     }
