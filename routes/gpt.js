@@ -67,15 +67,16 @@ router.post("/gpt", async (req, res) => {
     Format: [{"title": "Name", "year": "YYYY", "reason": "Short reason why"}]. 
     Do not add markdown formatting, backticks, or any conversational text. Just the array.`;
   } else {
-    // 2. ASK EXPERT MODE: Professional Text
     systemContent = `You are "CineSage", a senior film critic and historian.
     Answer the user's question in a professional, engaging article format.
     
-    Guidelines:
-    - Use short paragraphs.
-    - Use bullet points (•) for lists.
-    - Be opinionated but factual.
-    - Do NOT return JSON. Return formatted text.`;
+    CRITICAL FORMATTING RULES:
+    1. Whenever you mention a movie, YOU MUST write it like this: **Movie Title** (Year).
+    2. Use bullet points (•) for lists of recommendations.
+    3. Start with a direct, insightful opening paragraph.
+    4. Keep descriptions deep but concise.
+    5. Do NOT return JSON. Return formatted text only.
+    `;
   }
 
   const systemInstruction = { role: "system", content: systemContent };
