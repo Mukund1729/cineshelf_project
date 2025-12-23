@@ -45,9 +45,9 @@ router.post("/moodtags", async (req, res) => {
   }
 });
 
-// --- Main GPT Discovery Route (PROFESSIONAL UPGRADE) ---
+// --- Main GPT Discovery Route ---
 router.post("/gpt", async (req, res) => {
-  const { messages, model, temperature } = req.body;
+  const { messages, model, temperature, mode } = req.body; // Added 'mode'
 
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: "Messages array is required" });
@@ -57,43 +57,38 @@ router.post("/gpt", async (req, res) => {
     return res.status(500).json({ error: "Server configuration error: Missing API Key" });
   }
 
-  // 🔥 1. PROFESSIONAL SYSTEM PROMPT
-  // This forces the AI to be a "Senior Curator" and return specific JSON for your UI.
-  const systemInstruction = {
-    role: "system",
-    content: `You are a sophisticated, high-end film curator and critic. 
-    
-    Your task is to recommend 5-6 films based on the user's input.
-    
-    CRITICAL INSTRUCTION: You must return ONLY a raw JSON array of objects. Do not include markdown formatting (like \`\`\`json).
-    
-    Structure for recommendations:
-    [
-      {
-        "title": "Exact Movie Title",
-        "year": "YYYY",
-        "reason": "A concise, professional 1-sentence curator's note explaining why this fits the mood."
-      }
-    ]
-    
-    If the user asks a general question (e.g., "Who directed Inception?", "Explain Neo-Noir"), strictly return a JSON object like this:
-    { "answer": "Your professional, concise, encyclopedic answer here." }
-    `
-  };
+  // 🔥 DYNAMIC PROMPT LOGIC
+  let systemContent = "";
 
-  // Prepend the system instruction to the user's message history
+  if (mode === "discover") {
+    // 1. DISCOVER MODE: Strict JSON for Movie Cards
+    systemContent = `You are a film curator API. 
+    Return ONLY a raw JSON array of 6 movie objects based on the user request.
+    Format: [{"title": "Name", "year": "YYYY", "reason": "Short reason why"}]. 
+    Do not add markdown formatting, backticks, or any conversational text. Just the array.`;
+  } else {
+    // 2. ASK EXPERT MODE: Professional Text
+    systemContent = `You are "CineSage", a senior film critic and historian.
+    Answer the user's question in a professional, engaging article format.
+    
+    Guidelines:
+    - Use short paragraphs.
+    - Use bullet points (•) for lists.
+    - Be opinionated but factual.
+    - Do NOT return JSON. Return formatted text.`;
+  }
+
+  const systemInstruction = { role: "system", content: systemContent };
+  // Prepend system instruction
   const apiMessages = [systemInstruction, ...messages];
 
   try {
-    // 2. Call OpenRouter API
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        // Mistral 7B Instruct is fast and follows instructions well. 
-        // You can swap this for "openai/gpt-3.5-turbo" or "anthropic/claude-3-haiku" if you want.
-        model: "mistralai/mistral-7b-instruct", 
+        model: model || "mistralai/mistral-7b-instruct",
         messages: apiMessages,
-        temperature: 0.7, // Slightly creative but focused
+        temperature: temperature || 0.7,
         max_tokens: 1000,
       },
       {
@@ -109,9 +104,16 @@ router.post("/gpt", async (req, res) => {
     const reply = response.data?.choices?.[0]?.message?.content;
     if (!reply) throw new Error("Empty response from AI");
 
-    // 3. Clean the response
-    // AI sometimes adds markdown code blocks despite being told not to. We strip them here.
-    const cleanReply = reply.replace(/```json/g, "").replace(/```/g, "").trim();
+    // Clean up response
+    let cleanReply = reply.trim();
+    
+    if (mode === "discover") {
+        // Strip markdown code blocks for JSON mode
+        cleanReply = cleanReply.replace(/```json/g, "").replace(/```/g, "").trim();
+    } else {
+        // Strip artifacts like [/s] for Text mode
+        cleanReply = cleanReply.replace(/\[\/s\]/g, "").trim();
+    }
     
     res.json({ reply: cleanReply });
 
