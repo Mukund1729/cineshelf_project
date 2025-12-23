@@ -296,4 +296,3 @@ export default function Discover() {
     </div>
   );
 }
-export default Discover;
